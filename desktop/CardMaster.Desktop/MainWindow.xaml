@@ -104,11 +104,10 @@
 
             <!-- Reader list and controls -->
             <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="#302B50" BorderThickness="1" CornerRadius="18" Padding="17" Margin="0,0,10,12">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
                         <TextBlock Text="قارئات البطاقات" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="الأجهزة التي يتعرف عليها Windows عبر PC/SC" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,4,0,13"/>
-                        <ListBox x:Name="ReadersList" Height="320" SelectionChanged="ReadersList_SelectionChanged">
+                        <ListBox x:Name="ReadersList" Height="220" SelectionChanged="ReadersList_SelectionChanged">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="Padding" Value="9"/>
@@ -123,11 +122,10 @@
                         <Button Content="⌕ فحص البطاقة المحددة" Click="ScanCard_Click" Margin="0,7,0,0" Background="#6039B6" BorderBrush="#A985FF"/>
                         <Button Content="نسخ تقرير الفحص" Click="CopyReport_Click" Margin="0,7,0,0" Background="#242044"/>
                         <Button Content="تصدير تقرير TXT" Click="ExportReport_Click" Margin="0,7,0,0" Background="#242044"/>
-                    </StackPanel>
-                    <Border DockPanel.Dock="Bottom" Background="#1B1930" CornerRadius="11" Padding="11" Margin="0,13,0,0">
+                    <Border Background="#1B1930" CornerRadius="11" Padding="11" Margin="0,13,0,0">
                         <TextBlock Text="ملاحظة: قارئ Smart Card قد يكون تلامسيًا فقط. قراءة NFC اللاسلكية تحتاج قارئًا يدعم NFC وPC/SC معًا." TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
                     </Border>
-                </DockPanel>
+                    </StackPanel></ScrollViewer>
             </Border>
 
             <!-- Diagnostic details -->
