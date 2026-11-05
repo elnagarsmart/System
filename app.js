@@ -6,9 +6,19 @@ function status(message){statusBox.textContent=message}
 function show(message){resultBox.textContent=message}
 function nfcSupported(){return "NDEFReader" in window}
 function setDiagnostic(id,text,kind){const el=$(id);el.textContent=text;el.className=kind||""}
-function currentSettings(){return {vibrate:$("vibrateSetting").checked,confirmWrite:$("confirmWriteSetting").checked}}
-function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(currentSettings()))}catch{}}
-function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");$("vibrateSetting").checked=!!s.vibrate;$("confirmWriteSetting").checked=s.confirmWrite!==false}catch{}}
+function currentSettings(){return {vibrate:$("vibrateSetting").checked,confirmWrite:$("confirmWriteSetting").checked,glassIntensity:Number($("glassSetting").value||72)}}
+function applyCardGlass(raw){
+ const value=Math.max(0,Math.min(100,Number.isFinite(Number(raw))?Number(raw):72)),t=value/100,root=document.documentElement;
+ root.style.setProperty("--glass-alpha",(0.94-t*.42).toFixed(3));
+ root.style.setProperty("--glass-blur",(2+t*23).toFixed(1)+"px");
+ root.style.setProperty("--glass-saturation",(108+t*65).toFixed(0)+"%");
+ root.style.setProperty("--glass-sheen",(0.02+t*.18).toFixed(3));
+ root.dataset.glass=value===0?"off":"on";
+ const label=value<25?"زجاج خفيف جدًا":value<55?"زجاج هادئ":value<82?"زجاج متوازن":"زجاج عميق";
+ $("glassSettingValue").textContent=value+"% · "+label;
+}
+function saveSettings(){try{const settings=currentSettings();localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));applyCardGlass(settings.glassIntensity)}catch{}}
+function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");$("vibrateSetting").checked=!!s.vibrate;$("confirmWriteSetting").checked=s.confirmWrite!==false;$("glassSetting").value=String(Math.max(0,Math.min(100,Number.isFinite(Number(s.glassIntensity))?Number(s.glassIntensity):72)));}catch{$("glassSetting").value="72"}applyCardGlass($("glassSetting").value);}
 async function diagnose(){
   const secure=window.isSecureContext===true;
   const android=/Android/i.test(navigator.userAgent);
@@ -122,5 +132,6 @@ $("clearRecordsBtn").addEventListener("click",()=>{
 });
 $("vibrateSetting").addEventListener("change",saveSettings);
 $("confirmWriteSetting").addEventListener("change",saveSettings);
+$("glassSetting").addEventListener("input",saveSettings);
 loadSettings();renderRecords();diagnose();
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
