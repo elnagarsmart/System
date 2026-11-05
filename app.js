@@ -4,6 +4,29 @@ const STORAGE_KEY="cardmaster.records.v2",SETTINGS_KEY="cardmaster.settings.v1";
 let reader=null,controller=null,lastRead="";
 function status(message){statusBox.textContent=message}
 function show(message){resultBox.textContent=message}
+function installCardGlassTracking(){
+ if(document.documentElement.dataset.cardGlassTracking==="on")return;
+ document.documentElement.dataset.cardGlassTracking="on";
+ const selector=".panel,.record,.diag-item,.compat,.notice";
+ document.addEventListener("pointermove",event=>{
+  const surface=event.target?.closest?.(selector);if(!surface)return;
+  const rect=surface.getBoundingClientRect();if(!rect.width||!rect.height)return;
+  const x=Math.max(0,Math.min(100,(event.clientX-rect.left)/rect.width*100));
+  const y=Math.max(0,Math.min(100,(event.clientY-rect.top)/rect.height*100));
+  surface.style.setProperty("--glass-x",x.toFixed(1)+"%");
+  surface.style.setProperty("--glass-y",y.toFixed(1)+"%");
+  surface.style.setProperty("--glass-tilt-x",((x-50)/50*.5).toFixed(2)+"deg");
+  surface.style.setProperty("--glass-tilt-y",((50-y)/50*.4).toFixed(2)+"deg");
+ });
+ document.addEventListener("pointerout",event=>{
+  const surface=event.target?.closest?.(selector);
+  if(surface&&(!event.relatedTarget||!surface.contains(event.relatedTarget))){
+   surface.style.setProperty("--glass-x","18%");surface.style.setProperty("--glass-y","0%");
+   surface.style.setProperty("--glass-tilt-x","0deg");surface.style.setProperty("--glass-tilt-y","0deg");
+  }
+ });
+}
+installCardGlassTracking();
 function nfcSupported(){return "NDEFReader" in window}
 function setDiagnostic(id,text,kind){const el=$(id);el.textContent=text;el.className=kind||""}
 function currentSettings(){return {vibrate:$("vibrateSetting").checked,confirmWrite:$("confirmWriteSetting").checked,glassIntensity:Number($("glassSetting").value||72)}}
