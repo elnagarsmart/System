@@ -6,6 +6,15 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.Ndef
+import android.nfc.NdefRecord
+import android.nfc.tech.IsoDep
+import android.nfc.tech.MifareClassic
+import android.nfc.tech.MifareUltralight
+import android.nfc.tech.NfcA
+import android.nfc.tech.NfcB
+import android.nfc.tech.NfcF
+import android.nfc.tech.NfcV
+import java.nio.charset.Charset
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -92,12 +101,68 @@ private data class ScanEntry(
     val ndefSummary: String
 )
 
+private data class NdefRecordInfo(
+    val kind: String,
+    val content: String
+)
+
+private fun bytesToHex(bytes: ByteArray?): String {
+    if (bytes == null || bytes.isEmpty()) return "غير متاح"
+    return bytes.joinToString(" ") { "%02X".format(Locale.US, it.toInt() and 0xFF) }
+}
+
+private fun decodeNdefRecord(record: NdefRecord): NdefRecordInfo {
+    val payload = record.payload ?: byteArrayOf()
+    return when {
+        record.tnf == NdefRecord.TNF_WELL_KNOWN && record.type.contentEquals(NdefRecord.RTD_TEXT) -> {
+            try {
+                if (payload.isEmpty()) return NdefRecordInfo("نص", "سجل نصي فارغ")
+                val status = payload[0].toInt() and 0xFF
+                val languageLength = status and 0x3F
+                val start = 1 + languageLength
+                if (start > payload.size) {
+                    NdefRecordInfo("نص", "تعذّر تفسير السجل النصي")
+                } else {
+                    val charset = if ((status and 0x80) != 0) Charset.forName("UTF-16") else Charsets.UTF_8
+                    val value = String(payload, start, payload.size - start, charset).take(1200)
+                    NdefRecordInfo("نص", value.ifBlank { "نص فارغ" })
+                }
+            } catch (_: Exception) {
+                NdefRecordInfo("نص", "تعذّر فك ترميز النص")
+            }
+        }
+        record.tnf == NdefRecord.TNF_WELL_KNOWN && record.type.contentEquals(NdefRecord.RTD_URI) -> {
+            val uri = try { record.toUri()?.toString() } catch (_: Exception) { null }
+            NdefRecordInfo("رابط", uri ?: "تعذّر تفسير الرابط")
+        }
+        record.tnf == NdefRecord.TNF_ABSOLUTE_URI -> {
+            val uri = try { record.toUri()?.toString() } catch (_: Exception) { null }
+            NdefRecordInfo("رابط", uri ?: "رابط غير معروف")
+        }
+        record.tnf == NdefRecord.TNF_MIME_MEDIA -> {
+            val mime = try { String(record.type, Charsets.UTF_8) } catch (_: Exception) { "MIME" }
+            if (mime.equals("text/plain", ignoreCase = true)) {
+                NdefRecordInfo("نص MIME", String(payload, Charsets.UTF_8).take(1200))
+            } else {
+                NdefRecordInfo("نوع محتوى", mime + " — بيانات ثنائية: " + payload.size + " بايت")
+            }
+        }
+        record.tnf == NdefRecord.TNF_EXTERNAL_TYPE -> {
+            NdefRecordInfo("نوع خارجي", String(record.type, Charsets.UTF_8) + " — " + payload.size + " بايت")
+        }
+        record.tnf == NdefRecord.TNF_EMPTY -> NdefRecordInfo("سجل فارغ", "لا يحتوي على بيانات")
+        else -> NdefRecordInfo("سجل NFC عام", "نوع السجل غير النصي — " + payload.size + " بايت")
+    }
+}
+
 class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     private var adapter: NfcAdapter? = null
     private var nfcEnabledState by mutableStateOf(false)
     private var status by mutableStateOf("ابدأ الفحص ثم قرّب البطاقة من ظهر الهاتف.")
     private var technologies by mutableStateOf(emptyList<String>())
     private var ndefSummary by mutableStateOf("لم يتم فحص أي بطاقة بعد.")
+    private var technicalDetails by mutableStateOf(emptyList<Pair<String, String>>())
+    private var ndefRecords by mutableStateOf(emptyList<NdefRecordInfo>())
     private var scanning by mutableStateOf(false)
     private var history by mutableStateOf(emptyList<ScanEntry>())
     private var selectedTab by mutableStateOf(AppTab.Home)
@@ -127,6 +192,8 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                         scanning = scanning,
                         technologies = technologies,
                         ndefSummary = ndefSummary,
+                        technicalDetails = technicalDetails,
+                        ndefRecords = ndefRecords,
                         lastScanTime = lastScanTime,
                         history = history,
                         vibrationEnabled = vibrationEnabled,
@@ -159,6 +226,8 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             return
         }
         technologies = emptyList()
+        technicalDetails = emptyList()
+        ndefRecords = emptyList()
         ndefSummary = "قرّب البطاقة من ظهر الهاتف وانتظر لحظة."
         lastScanTime = ""
         status = "المستشعر جاهز — في انتظار البطاقة…"
@@ -190,37 +259,125 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag) {
-        val techs = tag.techList
-            .map { it.substringAfterLast('.') }
-            .distinct()
-            .sorted()
+        // Android only reports technologies supported by both the tag and this handset.
+        val techs = tag.techList.map { it.substringAfterLast('.') }.distinct().sorted()
+        val details = mutableListOf<Pair<String, String>>()
+        fun addDetail(label: String, value: String?) {
+            if (!value.isNullOrBlank()) details.add(label to value)
+        }
+
+        // Discovery metadata only. No UID, APDU, sector reads, or protected commands.
+        try {
+            NfcA.get(tag)?.let {
+                addDetail("NFC-A / ATQA", bytesToHex(it.atqa))
+                addDetail("NFC-A / SAK", "%04X".format(Locale.US, it.sak.toInt() and 0xFFFF))
+                addDetail("NFC-A / الحد الأقصى للاتصال", it.maxTransceiveLength.toString() + " بايت")
+            }
+        } catch (_: Exception) { addDetail("NFC-A", "تم اكتشاف التقنية؛ تعذّر عرض بعض الخصائص.") }
+
+        try {
+            NfcB.get(tag)?.let {
+                addDetail("NFC-B / Application Data", bytesToHex(it.applicationData))
+                addDetail("NFC-B / Protocol Info", bytesToHex(it.protocolInfo))
+            }
+        } catch (_: Exception) { addDetail("NFC-B", "تم اكتشاف التقنية؛ تعذّر عرض بعض الخصائص.") }
+
+        try {
+            NfcF.get(tag)?.let {
+                addDetail("NFC-F / Manufacturer", bytesToHex(it.manufacturer))
+                addDetail("NFC-F / System Code", bytesToHex(it.systemCode))
+            }
+        } catch (_: Exception) { addDetail("NFC-F", "تم اكتشاف التقنية؛ تعذّر عرض بعض الخصائص.") }
+
+        try {
+            NfcV.get(tag)?.let {
+                addDetail("NFC-V / DSF ID", "%02X".format(Locale.US, it.dsfId.toInt() and 0xFF))
+                addDetail("NFC-V / Response Flags", "%02X".format(Locale.US, it.responseFlags.toInt() and 0xFF))
+                addDetail("NFC-V / الحد الأقصى للاتصال", it.maxTransceiveLength.toString() + " بايت")
+            }
+        } catch (_: Exception) { addDetail("NFC-V", "تم اكتشاف التقنية؛ تعذّر عرض بعض الخصائص.") }
+
+        try {
+            IsoDep.get(tag)?.let {
+                addDetail("ISO-DEP / Historical Bytes", bytesToHex(it.historicalBytes))
+                addDetail("ISO-DEP / Hi-Layer Response", bytesToHex(it.hiLayerResponse))
+                addDetail("ISO-DEP / الحد الأقصى للاتصال", it.maxTransceiveLength.toString() + " بايت")
+            }
+        } catch (_: Exception) { addDetail("ISO-DEP", "تم اكتشاف التقنية؛ تعذّر عرض بعض الخصائص.") }
+
+        try {
+            MifareClassic.get(tag)?.let {
+                val type = when (it.type) {
+                    MifareClassic.TYPE_CLASSIC -> "Classic"
+                    MifareClassic.TYPE_PLUS -> "Plus"
+                    MifareClassic.TYPE_PRO -> "Pro"
+                    else -> "غير معروف"
+                }
+                addDetail(
+                    "MIFARE Classic",
+                    type + " — " + it.size + " بايت — " + it.sectorCount + " قطاع — " + it.blockCount + " كتلة"
+                )
+            }
+        } catch (_: Exception) { addDetail("MIFARE Classic", "تم اكتشاف التقنية؛ تعذّر عرض بعض الخصائص.") }
+
+        try {
+            MifareUltralight.get(tag)?.let {
+                val type = when (it.type) {
+                    MifareUltralight.TYPE_ULTRALIGHT -> "Ultralight"
+                    MifareUltralight.TYPE_ULTRALIGHT_C -> "Ultralight C"
+                    else -> "غير معروف"
+                }
+                addDetail("MIFARE Ultralight", type + " — الحد الأقصى للاتصال: " + it.maxTransceiveLength + " بايت")
+            }
+        } catch (_: Exception) { addDetail("MIFARE Ultralight", "تم اكتشاف التقنية؛ تعذّر عرض بعض الخصائص.") }
 
         var ndefAvailable = false
+        val foundRecords = mutableListOf<NdefRecordInfo>()
         val ndef = Ndef.get(tag)
         val summary = if (ndef == null) {
-            "لم تعلن البطاقة عن دعم NDEF. هذا لا يعني أنها تالفة؛ قد تستخدم تقنية أو نظامًا آخر."
+            addDetail("NDEF", "غير معلن من البطاقة أو غير مدعوم على هذا الهاتف.")
+            "لم تعلن البطاقة عن دعم NDEF. هذا لا يعني أنها تالفة؛ قد تستخدم تقنية أخرى."
         } else {
             try {
                 ndef.connect()
                 ndefAvailable = true
                 val writable = if (ndef.isWritable) "متاحة" else "غير متاحة"
                 val maxSize = ndef.maxSize
-                "تم التعرف على NDEF. السعة المعلنة: $maxSize بايت. الكتابة: $writable. لم تتم قراءة محتوى الرسالة."
+                val message = ndef.ndefMessage
+                val records = message?.records ?: emptyArray()
+                records.take(20).forEach { foundRecords.add(decodeNdefRecord(it)) }
+                addDetail("NDEF / السعة المعلنة", maxSize.toString() + " بايت")
+                addDetail("NDEF / الكتابة", writable)
+                addDetail("NDEF / عدد السجلات", records.size.toString())
+                if (records.size > 20) addDetail("NDEF / تنبيه", "تم عرض أول 20 سجلًا فقط.")
+                if (records.isEmpty()) {
+                    "دعم NDEF متاح، لكن لا توجد سجلات قابلة للعرض."
+                } else {
+                    "تمت قراءة " + records.size + " سجل NDEF عادي على البطاقة."
+                }
             } catch (_: Exception) {
-                "تم اكتشاف واجهة NDEF، لكن تعذّر الاستعلام عن خصائصها من هذه البطاقة."
+                addDetail("NDEF", "تم اكتشاف الواجهة لكن تعذّرت قراءة رسائلها.")
+                "تم اكتشاف واجهة NDEF لكن تعذّرت قراءة الرسالة. قد تكون غير متاحة أو أُزيلت البطاقة أثناء الفحص."
             } finally {
                 try { ndef.close() } catch (_: Exception) {}
             }
         }
 
+        if (details.isEmpty()) {
+            details.add("التقنيات المتاحة" to techs.joinToString(", "))
+        }
+
         val time = SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.getDefault()).format(Date())
+        // Persistent history intentionally excludes NDEF payloads and tag identifiers.
         val entry = ScanEntry(time, techs, ndefAvailable, summary)
 
         runOnUiThread {
             technologies = techs
+            technicalDetails = details
+            ndefRecords = foundRecords
             ndefSummary = summary
             lastScanTime = time
-            status = "تم اكتشاف بطاقة NFC بنجاح."
+            status = "تم اكتشاف بطاقة NFC. تم عرض المعلومات العامة والسجلات المتاحة فقط."
             scanning = false
             history = (listOf(entry) + history).take(20)
             saveHistory()
@@ -302,6 +459,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             "الحالة: $status\n" +
             "التقنيات: $techText\n" +
             "معلومات NDEF: $ndefSummary\n" +
+            "عدد تفاصيل التقنية: " + technicalDetails.size + "\n" +
             "وقت الفحص: " + lastScanTime.ifBlank { "غير متاح" } + "\n" +
             "ملاحظة: لا يتضمن التقرير رقم البطاقة أو محتواها أو أي بيانات سرية."
     }
@@ -348,6 +506,8 @@ private fun CardMasterScreen(
     scanning: Boolean,
     technologies: List<String>,
     ndefSummary: String,
+    technicalDetails: List<Pair<String, String>>,
+    ndefRecords: List<NdefRecordInfo>,
     lastScanTime: String,
     history: List<ScanEntry>,
     vibrationEnabled: Boolean,
@@ -400,7 +560,7 @@ private fun CardMasterScreen(
             when (selectedTab) {
                 AppTab.Home -> HomeContent(
                     nfcAvailable, nfcEnabled, status, scanning, technologies, ndefSummary,
-                    lastScanTime, history.size, deviceName, androidVersion,
+                    technicalDetails, ndefRecords, lastScanTime, history.size, deviceName, androidVersion,
                     onStartScan, onStopScan,
                     onOpenHistory = { onSelectTab(AppTab.History) },
                     onOpenSettings = { onSelectTab(AppTab.Settings) },
@@ -440,6 +600,8 @@ private fun HomeContent(
     scanning: Boolean,
     technologies: List<String>,
     ndefSummary: String,
+    technicalDetails: List<Pair<String, String>>,
+    ndefRecords: List<NdefRecordInfo>,
     lastScanTime: String,
     historyCount: Int,
     deviceName: String,
@@ -559,6 +721,30 @@ private fun HomeContent(
                 color = TextMuted,
                 fontSize = 12.sp
             )
+        }
+    }
+
+    if (technicalDetails.isNotEmpty()) {
+        PanelCard {
+            SectionTitle("تفاصيل تقنية البطاقة", "الخصائص العامة التي أتاحها Android")
+            technicalDetails.forEach { item ->
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(item.first, color = Violet, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(item.second, color = TextMain, fontSize = 12.sp)
+                }
+                Divider(color = Line.copy(alpha = 0.65f))
+            }
+        }
+    }
+
+    if (ndefRecords.isNotEmpty()) {
+        PanelCard {
+            SectionTitle("محتوى NDEF المقروء", "سجلات نصية وروابط عادية — لا تُحفظ في السجل")
+            ndefRecords.forEachIndexed { index, record ->
+                Text("السجل " + (index + 1) + " · " + record.kind, color = Violet, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(record.content, color = TextMain, fontSize = 12.sp)
+                if (index < ndefRecords.lastIndex) Divider(color = Line.copy(alpha = 0.65f))
+            }
         }
     }
 
