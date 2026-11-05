@@ -29,3 +29,5 @@ html[data-glass="off"] .panel,html[data-glass="off"] .compat,html[data-glass="of
 .panel,.record,.diag-item,.compat,.notice{background-image:radial-gradient(circle at var(--glass-x,18%) var(--glass-y,0%),rgba(211,255,245,var(--glass-sheen)),transparent 48%),linear-gradient(145deg,rgba(25,43,66,var(--glass-alpha)),rgba(9,25,42,var(--glass-alpha)))!important;background-size:160% 160%,100% 100%;background-position:var(--glass-x,18%) var(--glass-y,0%),center}
 .panel,.record,.diag-item{transform:perspective(1000px) rotateX(var(--glass-tilt-y,0deg)) rotateY(var(--glass-tilt-x,0deg));transform-style:preserve-3d}
 @media(prefers-reduced-motion:reduce){.panel,.record,.diag-item{transform:none!important}}
+
+@media(hover:hover){.panel:hover,.record:hover,.diag-item:hover{transform:perspective(1000px) rotateX(var(--glass-tilt-y,0deg)) rotateY(var(--glass-tilt-x,0deg)) translateY(-2px)!important}}
