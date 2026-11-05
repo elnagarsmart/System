@@ -3,22 +3,62 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <Color x:Key="BackgroundColor">#090B14</Color>
-        <Color x:Key="PanelColor">#151A2D</Color>
+        <Color x:Key="BackgroundColor">#080711</Color>
+        <Color x:Key="PanelColor">#131329</Color>
         <Color x:Key="AccentColor">#A78BFA</Color>
         <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
         <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}"/>
         <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#F4F2FF"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#A7A9BC"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#F4F0FF"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#A6A1BE"/>
         <Style TargetType="Button">
             <Setter Property="Background" Value="#34245F"/>
-            <Setter Property="Foreground" Value="#F4F2FF"/>
-            <Setter Property="BorderBrush" Value="#59418E"/>
-            <Setter Property="Padding" Value="18,10"/>
-            <Setter Property="Margin" Value="4"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#F4F0FF"/>
+            <Setter Property="BorderBrush" Value="#6B4CA5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.86"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.72"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.42"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#211A39"/>
+            <Setter Property="Foreground" Value="#D6C5FF"/>
+            <Setter Property="BorderBrush" Value="#393153"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="BorderBrush" Value="#2A2946"/>
+            <Setter Property="Padding" Value="7,4"/>
         </Style>
     </Application.Resources>
 </Application>
