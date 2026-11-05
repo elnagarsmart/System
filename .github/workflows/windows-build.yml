@@ -1,0 +1,31 @@
+name: CardMaster Windows build
+
+on:
+  push:
+    branches: [desktop/windows-cardmaster]
+    paths:
+      - "desktop/**"
+      - ".github/workflows/windows-build.yml"
+  pull_request:
+    paths:
+      - "desktop/**"
+      - ".github/workflows/windows-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Publish Windows x64
+        run: dotnet publish .\desktop\CardMaster.Desktop\CardMaster.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+      - name: Upload Windows app
+        uses: actions/upload-artifact@v4
+        with:
+          name: cardmaster-windows-x64
+          path: desktop/CardMaster.Desktop/bin/Release/net8.0-windows/win-x64/publish/
