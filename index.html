@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="CardMaster - إدارة وسوم NFC العادية بأمان">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>CardMaster | كارد ماستر</title>
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="mark">N</span><div><strong>CardMaster</strong><small>كارد ماستر</small></div></div>
+    <span class="local">يعمل محليًا · بدون اشتراك</span>
+  </header>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">إدارة وسوم NFC</p>
+      <h1>اقرأ وسومك العادية<br><em>وأدر بياناتها بسهولة.</em></h1>
+      <p class="sub">نسخة أولية مستقلة. لا تحتاج حسابًا أو قاعدة بيانات.</p>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><h2>قارئ NFC</h2><p>قراءة وكتابة سجلات NDEF العادية على الوسوم المصرّح لك بها.</p></div><span class="pulse"></span></div>
+      <div class="actions">
+        <button id="readBtn" class="primary">ابدأ القراءة</button>
+        <button id="writeBtn" class="secondary">كتابة نص على وسم</button>
+        <button id="stopBtn" class="quiet" disabled>إيقاف</button>
+      </div>
+      <label for="payload">النص المراد كتابته</label>
+      <textarea id="payload" rows="3" placeholder="اكتب نصًا عاديًا أو رابطًا تملكه..."></textarea>
+      <div id="status" class="status" role="status">جاهز. اضغط «ابدأ القراءة» ثم قرّب الوسم من الهاتف.</div>
+      <div class="result-head"><h3>آخر نتيجة</h3><button id="clearBtn" class="link">مسح العرض</button></div>
+      <pre id="result">لم تتم قراءة أي وسم بعد.</pre>
+    </section>
+    <section class="notice">
+      <strong>تنبيه مهم للسلامة والخصوصية</strong>
+      <p>هذه الأداة مخصّصة لوسوم NFC العادية التي تملكها أو لديك تصريح بإدارتها. لا يمكنها تعديل أرصدة أو بيانات بطاقات البنوك أو الهوية أو الدخول أو عدادات المرافق، ولا نسخها أو تجاوز حمايتها. لا تضع أرقام بطاقات أو بيانات شخصية في السجلات.</p>
+    </section>
+    <section class="compat">
+      <h2>التوافق</h2>
+      <p>قراءة وكتابة NFC عبر المتصفح تعتمد على دعم Web NFC. الدعم محدود وغالبًا يتطلب هاتف Android ومتصفح Chrome مع HTTPS. قارئ الكروت الذكي في الكمبيوتر ليس بالضرورة قارئ NFC.</p>
+    </section>
+  </main>
+  <footer>CardMaster © 2026 · مشروع مستقل عن Academia</footer>
+  <script src="app.js"></script>
+</body>
+</html>
