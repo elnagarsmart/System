@@ -175,7 +175,10 @@ public partial class MainWindow : Window
         report.AppendLine($"حالة البطاقة: {(inspection?.CardPresent == true ? "تم اكتشاف بطاقة" : "غير متاح أو لا توجد بطاقة")}");
         report.AppendLine($"بروتوكول الاتصال: {inspection?.Protocol ?? "غير متاح"}");
         report.AppendLine($"ATR: {(string.IsNullOrWhiteSpace(inspection?.AtrHex) ? "غير متاح" : inspection.AtrHex)}");
-        report.AppendLine($"طول ATR: {(inspection?.AtrHex.Length > 0 ? inspection.AtrHex.Length / 2 + " بايت" : "غير متاح")}");
+        var atrLengthText = !string.IsNullOrEmpty(inspection?.AtrHex)
+            ? (inspection.AtrHex.Length / 2).ToString() + " بايت"
+            : "غير متاح";
+        report.AppendLine("طول ATR: " + atrLengthText);
         report.AppendLine();
         report.AppendLine("حدود هذا التقرير:");
         report.AppendLine("- يعرض معلومات PC/SC العامة التي يوفرها قارئ Windows فقط.");
