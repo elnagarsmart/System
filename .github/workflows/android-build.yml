@@ -1,4 +1,4 @@
-name: Android debug build
+name: CardMaster Android debug build
 
 concurrency:
   group: cardmaster-android-${{ github.ref }}
@@ -6,7 +6,7 @@ concurrency:
 
 on:
   push:
-    branches: [main, android-nfc-reader]
+    branches: [main, android-nfc-reader, desktop/windows-cardmaster, cardmaster-v2-cross-platform]
     paths:
       - "android/**"
       - ".github/workflows/android-build.yml"
