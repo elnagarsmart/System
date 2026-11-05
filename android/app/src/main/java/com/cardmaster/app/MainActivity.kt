@@ -6,6 +6,7 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.Ndef
+import android.nfc.tech.NfcBarcode
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.MifareClassic
@@ -266,6 +267,14 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             if (!value.isNullOrBlank()) details.add(label to value)
         }
 
+        // Barcode technology is reported when Android and the reader expose it.
+        try {
+            NfcBarcode.get(tag)?.let {
+                val barcodeType = if (it.type == NfcBarcode.TYPE_KOVIO) "Kovio" else "غير معروف"
+                addDetail("NFC Barcode", barcodeType)
+            }
+        } catch (_: Exception) { addDetail("NFC Barcode", "تم اكتشاف التقنية؛ تعذّر عرض النوع.") }
+
         // Discovery metadata only. No UID, APDU, sector reads, or protected commands.
         try {
             NfcA.get(tag)?.let {
@@ -459,9 +468,11 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
             "الحالة: $status\n" +
             "التقنيات: $techText\n" +
             "معلومات NDEF: $ndefSummary\n" +
-            "عدد تفاصيل التقنية: " + technicalDetails.size + "\n" +
+            "تفاصيل التقنية العامة:\n" +
+            technicalDetails.joinToString("\n") { "• " + it.first + ": " + it.second } + "\n" +
+            "عدد سجلات NDEF المعروضة: " + ndefRecords.size + "\n" +
             "وقت الفحص: " + lastScanTime.ifBlank { "غير متاح" } + "\n" +
-            "ملاحظة: لا يتضمن التقرير رقم البطاقة أو محتواها أو أي بيانات سرية."
+            "ملاحظة: لا يتضمن التقرير رقم البطاقة أو محتوى سجلات NDEF أو أي بيانات سرية."
     }
 
     private fun copyReport() {
