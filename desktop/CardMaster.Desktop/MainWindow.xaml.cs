@@ -170,11 +170,11 @@ public partial class MainWindow : Window
         var report = new StringBuilder();
         report.AppendLine("CardMaster Professional — تقرير تشخيص قارئ البطاقات");
         report.AppendLine($"وقت إنشاء التقرير: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
-        report.AppendLine($"اسم القارئ: {string.IsNullOrWhiteSpace(_lastReaderName) ? "غير محدد" : _lastReaderName}");
-        report.AppendLine($"وقت آخر فحص: {_lastScanTime?.ToString("dd/MM/yyyy HH:mm:ss") ?? "غير متاح"}");
-        report.AppendLine($"حالة البطاقة: {(inspection?.CardPresent == true ? "تم اكتشاف بطاقة" : "غير متاح أو لا توجد بطاقة")}");
-        report.AppendLine($"بروتوكول الاتصال: {inspection?.Protocol ?? "غير متاح"}");
-        report.AppendLine($"ATR: {(string.IsNullOrWhiteSpace(inspection?.AtrHex) ? "غير متاح" : inspection.AtrHex)}");
+        report.AppendLine("اسم القارئ: " + (string.IsNullOrWhiteSpace(_lastReaderName) ? "غير محدد" : _lastReaderName));
+        report.AppendLine("وقت آخر فحص: " + (_lastScanTime?.ToString("dd/MM/yyyy HH:mm:ss") ?? "غير متاح"));
+        report.AppendLine("حالة البطاقة: " + (inspection?.CardPresent == true ? "تم اكتشاف بطاقة" : "غير متاح أو لا توجد بطاقة"));
+        report.AppendLine("بروتوكول الاتصال: " + (inspection?.Protocol ?? "غير متاح"));
+        report.AppendLine("ATR: " + (string.IsNullOrWhiteSpace(inspection?.AtrHex) ? "غير متاح" : inspection.AtrHex));
         var atrLengthText = !string.IsNullOrEmpty(inspection?.AtrHex)
             ? (inspection.AtrHex.Length / 2).ToString() + " بايت"
             : "غير متاح";
