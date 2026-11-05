@@ -94,6 +94,7 @@ private data class ScanEntry(
 
 class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     private var adapter: NfcAdapter? = null
+    private var nfcEnabledState by mutableStateOf(false)
     private var status by mutableStateOf("ابدأ الفحص ثم قرّب البطاقة من ظهر الهاتف.")
     private var technologies by mutableStateOf(emptyList<String>())
     private var ndefSummary by mutableStateOf("لم يتم فحص أي بطاقة بعد.")
@@ -106,6 +107,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         adapter = NfcAdapter.getDefaultAdapter(this)
+        nfcEnabledState = adapter?.isEnabled == true
         history = loadHistory()
         vibrationEnabled = getSharedPreferences("cardmaster", MODE_PRIVATE)
             .getBoolean("vibration", true)
@@ -120,7 +122,7 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
                         selectedTab = selectedTab,
                         onSelectTab = { selectedTab = it },
                         nfcAvailable = adapter != null,
-                        nfcEnabled = adapter?.isEnabled == true,
+                        nfcEnabled = nfcEnabledState,
                         status = status,
                         scanning = scanning,
                         technologies = technologies,
@@ -322,8 +324,11 @@ class MainActivity : ComponentActivity(), NfcAdapter.ReaderCallback {
     override fun onResume() {
         super.onResume()
         adapter = NfcAdapter.getDefaultAdapter(this)
-        if (!scanning && adapter?.isEnabled == false) {
+        nfcEnabledState = adapter?.isEnabled == true
+        if (!scanning && adapter != null && !nfcEnabledState) {
             status = "خاصية NFC مغلقة. فعّلها من إعدادات الهاتف."
+        } else if (!scanning && nfcEnabledState && status.startsWith("خاصية NFC مغلقة")) {
+            status = "NFC مفعّل وجاهز للفحص."
         }
     }
 
