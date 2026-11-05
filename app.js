@@ -102,7 +102,7 @@ function loadRecords(){try{const data=JSON.parse(localStorage.getItem(STORAGE_KE
 let records=loadRecords();
 function persistRecords(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(records));renderRecords();return true}catch{status("تعذّر الحفظ في المتصفح. صدّر نسخة احتياطية أو وفر مساحة.");return false}}
 function renderRecords(){
-  $("recordCount").textContent=String(records.length);if($("recordCountMirror"))$("recordCountMirror").textContent=String(records.length);const list=$("recordList");list.replaceChildren();
+  $("recordCount").textContent=String(records.length);const list=$("recordList");list.replaceChildren();
   if(!records.length){const p=document.createElement("p");p.className="empty";p.textContent="لا توجد سجلات محفوظة بعد.";list.append(p);return}
   records.forEach(item=>{
     const card=document.createElement("article");card.className="record";const details=document.createElement("div");
