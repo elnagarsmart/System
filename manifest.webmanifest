@@ -1,7 +1,20 @@
 {
- "name":"CardMaster - كارد ماستر","short_name":"CardMaster","lang":"ar","dir":"rtl",
- "start_url":"./","scope":"./","display":"standalone",
- "background_color":"#0b1220","theme_color":"#101827",
- "description":"قارئ NFC وإدارة وسوم NDEF العادية وسجلاتها",
- "icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "name": "CardMaster - كارد ماستر",
+  "short_name": "CardMaster",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080A14",
+  "theme_color": "#080A14",
+  "description": "قارئ NFC وتشخيص تقنيات البطاقات والوسوم المتوافقة",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
