@@ -65,7 +65,7 @@ function saveRecord(name,type,notes){
   let rows=loadRecords();
   if(rows.length>=200){status("وصلت إلى الحد الأقصى 200 سجل. صدّر نسخة احتياطية ثم احذف سجلات قديمة.");return false}
   rows.unshift({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name:name.slice(0,60),type:type.slice(0,40),notes:notes.slice(0,300),createdAt:new Date().toISOString()});
-  records=rows;persistRecords();return true;
+  records=rows;return persistRecords();
 }
 $("diagnoseBtn").addEventListener("click",()=>diagnose());
 $("readBtn").addEventListener("click",async()=>{
@@ -136,7 +136,7 @@ importFile.addEventListener("change",async()=>{
 });
 $("clearRecordsBtn").addEventListener("click",()=>{
   if(!confirm("تحذير: سيتم حذف كل السجلات والإعدادات المحلية من هذا المتصفح. هل أنت متأكد؟"))return;
-  records=[];persistRecords();status("تم حذف السجلات المحلية.");
+  records=[];persistRecords();localStorage.removeItem(SETTINGS_KEY);loadSettings();status("تم حذف السجلات والإعدادات المحلية.");
 });
 $("vibrateSetting").addEventListener("change",saveSettings);
 $("confirmWriteSetting").addEventListener("change",saveSettings);
