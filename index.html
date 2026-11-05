@@ -1,92 +1,55 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101827">
-  <meta name="description" content="CardMaster - قارئ NFC وإدارة الوسوم العادية">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon.svg">
-  <link rel="stylesheet" href="style.css">
-  <title>CardMaster | كارد ماستر</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090814"><meta name="description" content="CardMaster Professional — قراءة وتشخيص وإدارة وسوم NFC العادية.">
+<meta name="application-name" content="CardMaster"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css"><title>CardMaster Professional | كارد ماستر</title>
 </head>
 <body>
-<header class="top">
-  <div class="brand"><span class="mark">N</span><div><strong>CardMaster</strong><small>كارد ماستر</small></div></div>
-  <span class="local">نسخة ويب منشورة · مجانية</span>
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+<header class="topbar">
+<a class="brand" href="#home"><span class="brand-mark"><svg viewBox="0 0 64 64"><rect x="10" y="12" width="31" height="40" rx="8"/><path d="M22 24h8M22 32h8M22 40h5M45 22c7 6 7 14 0 20M50 16c11 9 11 23 0 32"/></svg></span><span><strong>CardMaster</strong><small>كارد ماستر · NFC toolkit</small></span></a>
+<div class="topbar-meta"><span class="version">PRO · إصدار الويب</span><span class="local"><i></i> معالجة محلية على جهازك</span></div>
 </header>
-<main>
-  <section class="hero">
-    <p class="eyebrow">NFC TOOLKIT</p>
-    <h1>قارئك ومدير وسومك،<br><em>في مكان واحد.</em></h1>
-    <p class="sub">افحص التوافق أولًا، ثم اقرأ أو اكتب سجلات NFC العادية، واحتفظ بسجلّاتك ونسخك الاحتياطية.</p>
-  </section>
-
-  <section class="panel diagnostics">
-    <div class="panel-head"><div><h2>فحص الجهاز والاتصال</h2><p>نعرض سبب عدم القراءة بدل ما نسيبك تضغط من غير نتيجة.</p></div><span class="pulse"></span></div>
-    <div class="diag-grid">
-      <div class="diag-item"><span>المتصفح</span><strong id="browserStatus">جارٍ الفحص…</strong></div>
-      <div class="diag-item"><span>اتصال HTTPS</span><strong id="secureStatus">جارٍ الفحص…</strong></div>
-      <div class="diag-item"><span>دعم Web NFC</span><strong id="apiStatus">جارٍ الفحص…</strong></div>
-      <div class="diag-item"><span>حالة التطبيق</span><strong id="appStatus">جارٍ الفحص…</strong></div>
-    </div>
-    <div id="diagnosis" class="status" role="status">يتم فحص إمكانيات جهازك…</div>
-    <button id="diagnoseBtn" class="secondary" type="button">إعادة فحص التوافق</button>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head"><div><h2>قارئ NFC</h2><p>قراءة وكتابة نصوص وروابط NDEF على الوسوم المصرّح لك بها.</p></div><span class="pulse"></span></div>
-    <div class="actions">
-      <button id="readBtn" class="primary" type="button">ابدأ القراءة</button>
-      <button id="writeBtn" class="secondary" type="button">كتابة نص على وسم</button>
-      <button id="stopBtn" class="quiet" type="button" disabled>إيقاف القراءة</button>
-    </div>
-    <label for="payload">النص المراد كتابته</label>
-    <textarea id="payload" rows="3" maxlength="1000" placeholder="اكتب نصًا عاديًا أو رابطًا تملكه…"></textarea>
-    <div id="status" class="status" role="status">جاهز. ابدأ بفحص الجهاز بالأعلى.</div>
-    <div class="result-head"><h3>نتيجة آخر قراءة</h3><div class="inline-actions"><button id="saveReadBtn" class="link" type="button" disabled>حفظ في السجل</button><button id="clearBtn" class="link" type="button">مسح العرض</button></div></div>
-    <pre id="result">لم تتم قراءة أي وسم بعد.</pre>
-  </section>
-
-  <section class="panel records-panel">
-    <div class="panel-head"><div><h2>سجل الكروت والوسوم</h2><p>سجل أسماء وتصنيفات وملاحظات عامة دون بيانات سرية.</p></div><span class="count" id="recordCount">0</span></div>
-    <form id="recordForm">
-      <div class="form-grid">
-        <div><label for="recordName">اسم السجل</label><input id="recordName" maxlength="60" required placeholder="مثال: وسم المكتبة"></div>
-        <div><label for="recordType">التصنيف</label><select id="recordType"><option>وسم NFC عادي</option><option>بطاقة عضوية</option><option>بطاقة تعريف غير حساسة</option><option>أخرى</option></select></div>
-      </div>
-      <label for="recordNotes">ملاحظات عامة (اختياري)</label>
-      <textarea id="recordNotes" maxlength="300" rows="2" placeholder="وصف غير حساس…"></textarea>
-      <button class="primary" type="submit">إضافة للسجل</button>
-    </form>
-    <div id="recordList" class="record-list"><p class="empty">لا توجد سجلات محفوظة بعد.</p></div>
-    <div class="backup-row">
-      <button id="exportBtn" class="secondary" type="button">تصدير نسخة احتياطية</button>
-      <button id="importBtn" class="quiet" type="button">استيراد نسخة</button>
-      <input id="importFile" type="file" accept="application/json,.json" hidden>
-    </div>
-  </section>
-
-  <section class="panel settings">
-    <div class="panel-head"><div><h2>الإعدادات</h2><p>تحكم في سلوك التطبيق على هذا الجهاز.</p></div></div>
-    <label class="setting-row"><span><strong>اهتزاز عند نجاح القراءة</strong><small>يتطلب دعم الاهتزاز من الجهاز.</small></span><input id="vibrateSetting" type="checkbox"></label>
-    <label class="setting-row"><span><strong>إظهار تنبيه قبل الكتابة</strong><small>موصى به حتى لا تكتب على وسم بالخطأ.</small></span><input id="confirmWriteSetting" type="checkbox" checked></label>
-    <div class="actions"><button id="clearRecordsBtn" class="danger" type="button">حذف جميع السجلات المحلية</button></div>
-    <p class="small-note">الموقع منشور على الإنترنت. السجلات والإعدادات تُحفظ داخل متصفح جهازك فقط، ولا تُرسل إلى سيرفر. نقلها لجهاز آخر يكون عبر النسخة الاحتياطية.</p>
-  </section>
-
-  <section class="notice">
-    <strong>مهم: أنواع الكروت المدعومة</strong>
-    <p>Web NFC يقرأ رسائل NDEF على وسوم متوافقة فقط. لا يقرأ بيانات الدفع أو الأسرار أو أرصدة بطاقات البنوك، ولا بيانات الهوية أو الدخول أو عدادات المرافق، ولا ينسخ أو يتجاوز الحماية. لا تُدخل أرقام بطاقات أو كلمات مرور أو بيانات شخصية.</p>
-  </section>
-  <section class="compat">
-    <h2>معلومة عن أجهزتك</h2>
-    <p>الهاتف Redmi Note 15 5G مدرج في مواصفات Xiaomi Egypt على أنه يدعم NFC، مع احتمال اختلاف الوظيفة حسب السوق. أما HP ProBook 650 G1 فقد يأتي بقارئ Smart Card اختياري؛ وهذا ليس بالضرورة قارئ NFC، وواجهة المتصفح لا تدعم Web NFC على Windows. لذلك قراءة اللابتوب تحتاج تحديد نوع القارئ فعليًا وتطبيق سطح مكتب متوافق.</p>
-  </section>
-</main>
-<footer>CardMaster © 2026 · مشروع مستقل عن Academia</footer>
-<script src="app.js"></script>
-</body>
-</html>
+<div class="app-layout">
+<aside class="sidebar">
+<div class="side-label">القائمة الرئيسية</div>
+<a class="nav-link active" href="#home"><span>⌂</span> لوحة التحكم</a>
+<a class="nav-link" href="#reader"><span>⌁</span> قراءة NFC</a>
+<a class="nav-link" href="#records"><span>▤</span> سجل البطاقات</a>
+<a class="nav-link" href="#backup"><span>⇧</span> النسخ الاحتياطي</a>
+<a class="nav-link" href="#settings"><span>⚙</span> الإعدادات</a>
+<div class="side-card"><div class="shield">⬡</div><strong>خصوصيتك أولًا</strong><p>نتائج القراءة والسجلات تبقى في هذا المتصفح. لا يوجد رفع تلقائي للسيرفر.</p><span class="privacy-chip">● محلي وآمن</span></div>
+<div class="side-foot">CardMaster مستقل عن Academia</div>
+</aside>
+<main id="home" class="content">
+<section class="welcome"><div><p class="eyebrow">SMART CARD & NFC WORKSPACE</p><h1>كل أدوات NFC، <em>في لوحة واحدة.</em></h1><p class="welcome-copy">افحص التوافق، اقرأ سجلات NDEF، اكتب على الوسوم العادية المملوكة لك، واحتفظ بتقاريرك محليًا.</p></div><div class="welcome-art" aria-hidden="true"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="nfc-symbol">⌁</div><div class="art-caption">NFC<br><small>SCAN · READ · MANAGE</small></div></div></section>
+<section class="stats-grid"><article class="stat-card"><span class="stat-icon purple">⌁</span><span class="stat-label">واجهة القراءة</span><strong>Web NFC</strong><small>على الأجهزة والمتصفحات المتوافقة</small></article><article class="stat-card"><span class="stat-icon cyan">▤</span><span class="stat-label">حفظ وإدارة</span><strong>سجل محلي</strong><small>استيراد وتصدير نسخة احتياطية</small></article><article class="stat-card"><span class="stat-icon green">◉</span><span class="stat-label">حالة الخصوصية</span><strong>محلي</strong><small>لا توجد مزامنة سحابية تلقائية</small></article></section>
+<section class="panel diagnostics" id="diagnostics"><div class="section-heading"><div><span class="section-kicker">SYSTEM CHECK</span><h2>فحص الجهاز والاتصال</h2><p>نحدد قدرات المتصفح قبل تشغيل قارئ NFC.</p></div><span class="live-dot"></span></div>
+<div class="diag-grid"><div class="diag-item"><span>المتصفح</span><strong id="browserStatus">جارٍ الفحص…</strong></div><div class="diag-item"><span>الاتصال الآمن</span><strong id="secureStatus">جارٍ الفحص…</strong></div><div class="diag-item"><span>واجهة Web NFC</span><strong id="apiStatus">جارٍ الفحص…</strong></div><div class="diag-item"><span>حالة التطبيق</span><strong id="appStatus">جارٍ الفحص…</strong></div></div>
+<div id="diagnosis" class="status" role="status" aria-live="polite">يتم فحص إمكانيات جهازك…</div><button id="diagnoseBtn" class="btn btn-outline" type="button">↻ إعادة فحص التوافق</button></section>
+<section class="workspace-grid">
+<section class="panel reader-panel" id="reader"><div class="section-heading"><div><span class="section-kicker">TAG OPERATIONS</span><h2>قارئ NFC</h2><p>قراءة سجلات NDEF العادية وكتابتها على وسوم متوافقة.</p></div><span class="round-icon">⌁</span></div>
+<div class="action-row"><button id="readBtn" class="btn btn-primary" type="button">⌕ ابدأ القراءة</button><button id="writeBtn" class="btn btn-secondary" type="button">✎ كتابة NDEF</button><button id="stopBtn" class="btn btn-ghost" type="button" disabled>إيقاف القراءة</button></div>
+<label for="payload">محتوى نصي للكتابة</label><textarea id="payload" rows="3" maxlength="1000" placeholder="اكتب نصًا عاديًا أو رابطًا تملكه…"></textarea><div class="hint-row"><span>الحد الأقصى 1000 حرف</span><span>تحتاج وسم NDEF قابلًا للكتابة</span></div>
+<div id="status" class="status" role="status" aria-live="polite">جاهز. افحص التوافق ثم ابدأ القراءة.</div>
+<div class="result-heading"><h3>نتيجة آخر قراءة</h3><div class="inline-actions"><button id="saveReadBtn" class="text-btn" type="button" disabled>حفظ في السجل</button><button id="clearBtn" class="text-btn" type="button">مسح العرض</button></div></div><pre id="result" aria-live="polite">لم تتم قراءة أي وسم بعد.</pre></section>
+<section class="panel capabilities-panel"><div class="section-heading"><div><span class="section-kicker">COMPATIBILITY</span><h2>التقنيات والمعلومات</h2><p>الويب يستخدم Web NFC لرسائل NDEF فقط.</p></div></div>
+<div class="capability-list"><div><span class="cap-icon">T</span><span><strong>سجلات نصية</strong><small>قراءة النصوص العادية</small></span><b>✓</b></div><div><span class="cap-icon">↗</span><span><strong>روابط URI</strong><small>إظهار الروابط المسجلة</small></span><b>✓</b></div><div><span class="cap-icon">▧</span><span><strong>MIME / بيانات عامة</strong><small>نوع المحتوى والحجم ومعاينة HEX</small></span><b>✓</b></div><div><span class="cap-icon">✎</span><span><strong>كتابة NDEF</strong><small>على الوسوم العادية القابلة للكتابة</small></span><b>✓</b></div><div><span class="cap-icon">⌘</span><span><strong>تقنيات أخرى</strong><small>قد تحتاج تطبيق Android أصليًا أو قارئًا مناسبًا</small></span><b>—</b></div></div>
+<div class="cap-note">ظهور اسم تقنية أو نوع قارئ لا يعني إمكانية قراءة محتوى محمي أو خاص.</div></section>
+</section>
+<section class="panel records-panel" id="records"><div class="section-heading"><div><span class="section-kicker">LOCAL LIBRARY</span><h2>سجل البطاقات والوسوم</h2><p>سجلات عامة تحفظها يدويًا أو تحفظ فيها نتيجة قراءة NDEF.</p></div><span class="counter" id="recordCount">0</span></div>
+<form id="recordForm" class="record-form"><div class="form-grid"><div><label for="recordName">اسم السجل</label><input id="recordName" maxlength="60" required placeholder="مثال: وسم المكتب"></div><div><label for="recordType">التصنيف</label><select id="recordType"><option>وسم NFC عادي</option><option>بطاقة عضوية</option><option>بطاقة تعريف غير حساسة</option><option>أخرى</option></select></div></div>
+<label for="recordNotes">ملاحظات عامة (اختياري)</label><textarea id="recordNotes" maxlength="300" rows="2" placeholder="وصف غير حساس…"></textarea><button class="btn btn-primary" type="submit">＋ إضافة للسجل</button></form>
+<div id="recordList" class="record-list"><p class="empty">لا توجد سجلات محفوظة بعد.</p></div></section>
+<section class="panel backup-panel" id="backup"><div class="section-heading"><div><span class="section-kicker">BACKUP & RESTORE</span><h2>النسخ الاحتياطي</h2><p>انقل سجلاتك بين الهاتف والكمبيوتر بملف محلي.</p></div><span class="round-icon">⇧</span></div><div class="backup-actions"><button id="exportBtn" class="btn btn-secondary" type="button">⇩ تصدير نسخة احتياطية</button><button id="importBtn" class="btn btn-outline" type="button">⇧ استيراد نسخة</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><p class="muted-note">لن يتم رفع ملف النسخة الاحتياطية إلى أي خدمة خارجية.</p></section>
+<section class="panel settings-panel" id="settings"><div class="section-heading"><div><span class="section-kicker">PREFERENCES</span><h2>الإعدادات</h2><p>تحكم في سلوك التطبيق على هذا الجهاز.</p></div><span class="round-icon">⚙</span></div>
+<label class="setting-row"><span><strong>اهتزاز عند نجاح القراءة</strong><small>يتطلب دعم الاهتزاز من الجهاز.</small></span><input id="vibrateSetting" type="checkbox"></label>
+<label class="setting-row"><span><strong>تأكيد قبل الكتابة</strong><small>يطلب موافقتك قبل كتابة سجل NDEF.</small></span><input id="confirmWriteSetting" type="checkbox" checked></label>
+<div class="danger-row"><p>حذف السجلات والإعدادات المحلية من هذا المتصفح.</p><button id="clearRecordsBtn" class="btn btn-danger" type="button">حذف جميع السجلات</button></div></section>
+<section class="notice"><strong>حدود القراءة وحماية البيانات</strong><p>Web NFC يدعم رسائل NDEF على الأجهزة والمتصفحات المتوافقة فقط. لا يعرض بيانات الدفع أو الأسرار أو أرصدة البطاقات البنكية أو بطاقات الهوية والدخول والعدادات، ولا ينسخ البطاقات المحمية أو يتجاوز الحماية. لا تدخل أرقام بطاقات أو كلمات مرور أو بيانات شخصية.</p></section>
+<section class="compat-footer"><h2>ملاحظات التوافق</h2><p>على Android قد يعمل Web NFC في Chrome الرسمي عبر HTTPS. على Windows لا تتاح واجهة Web NFC عادةً؛ استخدم تطبيق CardMaster للكمبيوتر مع قارئ USB متوافق. قارئ Smart Card المدمج في بعض أجهزة HP قد يكون تلامسيًا وليس NFC لاسلكيًا.</p></section>
+<footer>CardMaster © 2026 · مشروع مستقل عن Academia · لا يتم حفظ UID تلقائيًا</footer>
+</main></div><script src="app.js"></script></body></html>

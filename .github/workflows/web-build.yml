@@ -1,0 +1,47 @@
+name: CardMaster Web validation
+
+on:
+  push:
+    branches: [main, cardmaster-v2-cross-platform]
+    paths:
+      - "index.html"
+      - "style.css"
+      - "app.js"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - ".github/workflows/web-build.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "style.css"
+      - "app.js"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - ".github/workflows/web-build.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: node --check app.js
+      - name: Validate required UI bindings
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const js = fs.readFileSync('app.js', 'utf8');
+          const referenced = [...js.matchAll(/\$\(["']([^"']+)["']\)/g)].map(m => m[1]);
+          const missing = [...new Set(referenced)].filter(id => !html.includes('id="' + id + '"') && !html.includes("id='" + id + "'"));
+          if (missing.length) {
+            console.error('Missing UI elements:', missing.join(', '));
+            process.exit(1);
+          }
+          JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
+          console.log('Web UI bindings and PWA manifest are valid.');
+          NODE
