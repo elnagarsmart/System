@@ -1,4 +1,4 @@
-# CardMaster Android
+# CardMaster Android\n\nإصدار التطوير الحالي: **1.2.0** (نسخة تجريبية قبل اعتمادها على هاتف فعلي).
 
 تطبيق Android أصلي مستقل عن موقع CardMaster وعن مشروع Academia.
 
