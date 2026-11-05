@@ -35,13 +35,30 @@ function showFriendlyError(error){
   if(name==="InvalidStateError")return "القارئ بدأ بالفعل. أوقف القراءة الحالية ثم حاول مرة أخرى.";
   return (error&&error.message)||"حدث خطأ غير معروف أثناء الاتصال بوحدة NFC.";
 }
-function decodeRecord(record){
-  if(!record.data)return "سجل فارغ ("+record.recordType+")";
-  const bytes=new Uint8Array(record.data.buffer,record.data.byteOffset,record.data.byteLength);
+function decodeRecord(record,index=0){
   const type=record.recordType||"unknown";
-  if(type==="mime"&&record.mediaType&&!(/^(text\/|application\/(json|xml))/i.test(record.mediaType)))return "محتوى ثنائي ("+record.mediaType+"): "+Array.from(bytes.slice(0,32)).map(b=>b.toString(16).padStart(2,"0")).join(" ") +(bytes.length>32?" …":"");
-  try{return type+" : "+new TextDecoder(record.encoding||"utf-8",{fatal:false}).decode(bytes).slice(0,1000)}
-  catch{return "سجل غير نصي ("+type+"), الحجم "+bytes.length+" بايت"}
+  const raw=record.data?new Uint8Array(record.data.buffer,record.data.byteOffset,record.data.byteLength):new Uint8Array();
+  const meta=[
+    "السجل رقم "+(index+1),
+    "النوع: "+type,
+    "الحجم: "+raw.length+" بايت"
+  ];
+  if(record.id)meta.push("المعرّف: "+String(record.id).slice(0,80));
+  if(record.mediaType)meta.push("MIME: "+String(record.mediaType).slice(0,100));
+  if(record.encoding)meta.push("الترميز: "+String(record.encoding).slice(0,40));
+  let value="";
+  if(!raw.length)value="لا توجد بيانات داخل هذا السجل.";
+  else if(type==="text"||(type==="mime"&&record.mediaType&&/^text\\//i.test(record.mediaType))){
+    try{value=new TextDecoder(record.encoding||"utf-8",{fatal:false}).decode(raw).slice(0,1500)}
+    catch{value="تعذّر فك ترميز النص."}
+  }else if(type==="url"){
+    try{value=new TextDecoder("utf-8",{fatal:false}).decode(raw).slice(0,1500)}
+    catch{value="تعذّر فك ترميز الرابط."}
+  }else{
+    value="معاينة HEX: "+Array.from(raw.slice(0,48)).map(b=>b.toString(16).padStart(2,"0").toUpperCase()).join(" ")+(raw.length>48?" …":"");
+    if(type==="mime"&&record.mediaType)value="نوع المحتوى: "+record.mediaType+"\\n"+value;
+  }
+  return meta.join(" | ")+"\\n"+value;
 }
 function safeVibrate(){if($("vibrateSetting").checked&&navigator.vibrate)navigator.vibrate(80)}
 function saveRecord(name,type,notes){
@@ -60,7 +77,8 @@ $("readBtn").addEventListener("click",async()=>{
     $("stopBtn").disabled=false;status("تم بدء القراءة. أبقِ الصفحة مفتوحة وقرّب الوسم من ظهر الهاتف.");
     reader.onreading=event=>{
       const lines=["تمت قراءة وسم NDEF بنجاح","عدد السجلات: "+event.message.records.length,"—"];
-      for(const record of event.message.records)lines.push(decodeRecord(record));
+      event.message.records.forEach((record,index)=>lines.push(decodeRecord(record,index)));
+      lines.unshift("وقت القراءة: "+new Date().toLocaleString("ar-EG"));
       lastRead=lines.join("\n");show(lastRead);$("saveReadBtn").disabled=false;status("اكتملت القراءة. لم نحفظ محتوى الوسم تلقائيًا.");safeVibrate();
     };
     reader.onreadingerror=()=>status("اقترب الوسم لكن تعذرت قراءة رسالته. قد يكون غير مهيأ بصيغة NDEF أو محميًا أو غير متوافق.");
@@ -82,9 +100,9 @@ $("saveReadBtn").addEventListener("click",()=>{
 });
 function loadRecords(){try{const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(data)?data.filter(x=>x&&typeof x.name==="string"&&typeof x.type==="string"):[]}catch{return []}}
 let records=loadRecords();
-function persistRecords(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(records));renderRecords()}catch{status("تعذّر الحفظ في المتصفح. صدّر نسخة احتياطية أو وفر مساحة.")}}
+function persistRecords(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(records));renderRecords();return true}catch{status("تعذّر الحفظ في المتصفح. صدّر نسخة احتياطية أو وفر مساحة.");return false}}
 function renderRecords(){
-  $("recordCount").textContent=String(records.length);const list=$("recordList");list.replaceChildren();
+  $("recordCount").textContent=String(records.length);if($("recordCountMirror"))$("recordCountMirror").textContent=String(records.length);const list=$("recordList");list.replaceChildren();
   if(!records.length){const p=document.createElement("p");p.className="empty";p.textContent="لا توجد سجلات محفوظة بعد.";list.append(p);return}
   records.forEach(item=>{
     const card=document.createElement("article");card.className="record";const details=document.createElement("div");
@@ -102,7 +120,7 @@ $("recordForm").addEventListener("submit",event=>{
 });
 $("exportBtn").addEventListener("click",()=>{
   const blob=new Blob([JSON.stringify({app:"CardMaster",version:2,records},null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="cardmaster-backup.json";link.click();URL.revokeObjectURL(url);status("تم تجهيز النسخة الاحتياطية.");
+  const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="cardmaster-backup.json";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status("تم تجهيز النسخة الاحتياطية.");
 });
 const importFile=$("importFile");$("importBtn").addEventListener("click",()=>importFile.click());
 importFile.addEventListener("change",async()=>{
