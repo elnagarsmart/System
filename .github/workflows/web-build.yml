@@ -37,7 +37,7 @@ jobs:
           const html = fs.readFileSync('index.html', 'utf8');
           const js = fs.readFileSync('app.js', 'utf8');
           const referenced = [...js.matchAll(/\$\(["']([^"']+)["']\)/g)].map(m => m[1]);
-          const missing = [...new Set(referenced)].filter(id => !new RegExp('id=["\\']' + id + '["\\']').test(html));
+          const missing = [...new Set(referenced)].filter(id => !html.includes('id="' + id + '"') && !html.includes("id='" + id + "'"));
           if (missing.length) {
             console.error('Missing UI elements:', missing.join(', '));
             process.exit(1);
