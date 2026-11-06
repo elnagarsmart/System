@@ -31,3 +31,31 @@ html[data-glass="off"] .panel,html[data-glass="off"] .compat,html[data-glass="of
 @media(prefers-reduced-motion:reduce){.panel,.record,.diag-item{transform:none!important}}
 
 @media(hover:hover){.panel:hover,.record:hover,.diag-item:hover{transform:perspective(1000px) rotateX(var(--glass-tilt-y,0deg)) rotateY(var(--glass-tilt-x,0deg)) translateY(-2px)!important}}
+
+/* Calm premium frosted glass — CardMaster */
+:root{--glass-alpha:.92;--glass-blur:6px;--glass-saturation:118%;--glass-sheen:.035}
+body{background:radial-gradient(ellipse at 12% 5%,rgba(90,227,194,.1),transparent 34%),radial-gradient(ellipse at 92% 25%,rgba(109,150,255,.12),transparent 34%),linear-gradient(145deg,#081321,#0d1b2c 58%,#0a2029);background-attachment:fixed}
+.top{position:sticky;top:0;z-index:5;background:rgba(7,18,31,.94)!important;border-bottom:1px solid rgba(190,219,255,.12)!important;-webkit-backdrop-filter:blur(7px) saturate(118%)!important;backdrop-filter:blur(7px) saturate(118%)!important;box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.panel,.compat,.notice,.diag-item,.status,pre,.record,.count,.setting-row,.local{
+ border:1px solid rgba(196,221,255,.13)!important;
+ background:linear-gradient(145deg,rgba(25,43,66,.92),rgba(12,27,44,.89))!important;
+ -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturation))!important;
+ backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturation))!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.12),inset 0 1px rgba(255,255,255,.05)!important;
+ transform:none!important;
+ transition:background .22s ease,border-color .22s ease,box-shadow .22s ease!important;
+}
+.panel{border-radius:20px}
+.panel:hover,.record:hover{transform:translateY(-1px)!important;border-color:rgba(208,229,255,.2)!important;box-shadow:0 14px 32px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.07)!important}
+button{transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease!important}
+button:not(:disabled):hover{transform:translateY(-1px)!important;box-shadow:0 8px 18px rgba(0,0,0,.14)!important}
+button:not(:disabled):active{transform:scale(.99)!important}
+input,select,textarea,pre{background:rgba(5,17,30,.76)!important;border-color:rgba(172,199,234,.16)!important}
+.glass-setting-row{background:rgba(22,39,59,.92)!important}
+.glass-setting-row small{color:#aebfd5}
+.glass-setting-row input[type=range]{accent-color:#82b9d5}
+.install-app-button{border:1px solid rgba(110,231,194,.19);border-radius:10px;padding:7px 11px;background:rgba(110,231,194,.09);color:#b6eadb;font-size:11px;font-weight:800;white-space:nowrap}
+.top-actions{display:flex;align-items:center;gap:10px}
+html[data-glass="off"] .panel,html[data-glass="off"] .compat,html[data-glass="off"] .notice,html[data-glass="off"] .diag-item,html[data-glass="off"] pre,html[data-glass="off"] .record,html[data-glass="off"] .setting-row{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+@media(max-width:560px){.top{position:relative}.top-actions{flex-direction:column;align-items:flex-end;gap:6px}.setting-row{align-items:flex-start}.glass-setting-row{flex-direction:column;align-items:stretch}.glass-setting-row input[type=range]{width:100%}}
+@media(prefers-reduced-motion:reduce){.panel,.record,button{transition:none!important;animation:none!important}}
