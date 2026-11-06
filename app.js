@@ -1,47 +1,44 @@
 const $=id=>document.getElementById(id);
 const statusBox=$("status"),resultBox=$("result");
+
+let deferredCardInstall=null;
+function cardInstallMessage(message){status(message)}
+async function installCardMaster(){
+ if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone){cardInstallMessage('CardMaster مثبت بالفعل على هذا الجهاز.');return}
+ if(deferredCardInstall){
+  const prompt=deferredCardInstall;deferredCardInstall=null;
+  try{await prompt.prompt();const result=await prompt.userChoice;cardInstallMessage(result?.outcome==='accepted'?'تم قبول تثبيت CardMaster.':'لم يتم التثبيت. يمكنك المحاولة مرة أخرى.')}
+  catch{cardInstallMessage('تعذر فتح نافذة التثبيت. استخدم قائمة المتصفح واختر تثبيت التطبيق.')}
+  return;
+ }
+ const ua=navigator.userAgent||'';
+ if(/iPhone|iPad|iPod/i.test(ua))cardInstallMessage('على iPhone أو iPad: افتح الرابط في Safari، اضغط مشاركة، ثم «إضافة إلى الشاشة الرئيسية» وفعّل «فتح كتطبيق».');
+ else if(/Android/i.test(ua))cardInstallMessage('على Android: افتح الرابط في Chrome، ثم قائمة ⋮ واختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».');
+ else cardInstallMessage('على الكمبيوتر: في Chrome أو Edge افتح قائمة المتصفح واختر «تثبيت CardMaster» أو «Apps → Install this site as an app».');
+}
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredCardInstall=event;const button=$('install-app');if(button)button.textContent='＋ تثبيت CardMaster'});
+window.addEventListener('appinstalled',()=>{deferredCardInstall=null;const button=$('install-app');if(button)button.hidden=true;cardInstallMessage('تم تثبيت CardMaster على هذا الجهاز.')});
+$('install-app')?.addEventListener('click',installCardMaster);
+
 const STORAGE_KEY="cardmaster.records.v2",SETTINGS_KEY="cardmaster.settings.v1";
 let reader=null,controller=null,lastRead="";
 function status(message){statusBox.textContent=message}
 function show(message){resultBox.textContent=message}
-function installCardGlassTracking(){
- if(document.documentElement.dataset.cardGlassTracking==="on")return;
- document.documentElement.dataset.cardGlassTracking="on";
- const selector=".panel,.record,.diag-item,.compat,.notice";
- document.addEventListener("pointermove",event=>{
-  const surface=event.target?.closest?.(selector);if(!surface)return;
-  const rect=surface.getBoundingClientRect();if(!rect.width||!rect.height)return;
-  const x=Math.max(0,Math.min(100,(event.clientX-rect.left)/rect.width*100));
-  const y=Math.max(0,Math.min(100,(event.clientY-rect.top)/rect.height*100));
-  surface.style.setProperty("--glass-x",x.toFixed(1)+"%");
-  surface.style.setProperty("--glass-y",y.toFixed(1)+"%");
-  surface.style.setProperty("--glass-tilt-x",((x-50)/50*.5).toFixed(2)+"deg");
-  surface.style.setProperty("--glass-tilt-y",((50-y)/50*.4).toFixed(2)+"deg");
- });
- document.addEventListener("pointerout",event=>{
-  const surface=event.target?.closest?.(selector);
-  if(surface&&(!event.relatedTarget||!surface.contains(event.relatedTarget))){
-   surface.style.setProperty("--glass-x","18%");surface.style.setProperty("--glass-y","0%");
-   surface.style.setProperty("--glass-tilt-x","0deg");surface.style.setProperty("--glass-tilt-y","0deg");
-  }
- });
-}
-installCardGlassTracking();
 function nfcSupported(){return "NDEFReader" in window}
 function setDiagnostic(id,text,kind){const el=$(id);el.textContent=text;el.className=kind||""}
 function currentSettings(){return {vibrate:$("vibrateSetting").checked,confirmWrite:$("confirmWriteSetting").checked,glassIntensity:Number($("glassSetting").value||72)}}
 function applyCardGlass(raw){
- const value=Math.max(0,Math.min(100,Number.isFinite(Number(raw))?Number(raw):72)),t=value/100,root=document.documentElement;
- root.style.setProperty("--glass-alpha",(0.94-t*.42).toFixed(3));
- root.style.setProperty("--glass-blur",(2+t*23).toFixed(1)+"px");
- root.style.setProperty("--glass-saturation",(108+t*65).toFixed(0)+"%");
- root.style.setProperty("--glass-sheen",(0.02+t*.18).toFixed(3));
+ const value=Math.max(0,Math.min(100,Number.isFinite(Number(raw))?Number(raw):34)),t=value/100,root=document.documentElement;
+ root.style.setProperty("--glass-alpha",(0.97-t*.16).toFixed(3));
+ root.style.setProperty("--glass-blur",(2+t*9).toFixed(1)+"px");
+ root.style.setProperty("--glass-saturation",(105+t*22).toFixed(0)+"%");
+ root.style.setProperty("--glass-sheen",(0.01+t*.055).toFixed(3));
  root.dataset.glass=value===0?"off":"on";
  const label=value<25?"زجاج خفيف جدًا":value<55?"زجاج هادئ":value<82?"زجاج متوازن":"زجاج عميق";
  $("glassSettingValue").textContent=value+"% · "+label;
 }
 function saveSettings(){try{const settings=currentSettings();localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));applyCardGlass(settings.glassIntensity)}catch{}}
-function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");$("vibrateSetting").checked=!!s.vibrate;$("confirmWriteSetting").checked=s.confirmWrite!==false;$("glassSetting").value=String(Math.max(0,Math.min(100,Number.isFinite(Number(s.glassIntensity))?Number(s.glassIntensity):72)));}catch{$("glassSetting").value="72"}applyCardGlass($("glassSetting").value);}
+function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");$("vibrateSetting").checked=!!s.vibrate;$("confirmWriteSetting").checked=s.confirmWrite!==false;$("glassSetting").value=String(Math.max(0,Math.min(100,Number.isFinite(Number(s.glassIntensity))?(Number(s.glassIntensity)===72?34:Number(s.glassIntensity)):34)));}catch{$("glassSetting").value="72"}applyCardGlass($("glassSetting").value);}
 async function diagnose(){
   const secure=window.isSecureContext===true;
   const android=/Android/i.test(navigator.userAgent);
